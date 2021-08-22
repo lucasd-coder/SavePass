@@ -33,7 +33,7 @@ export function RegisterLoginData() {
   const { navigate } = useNavigation();
   const {
     control,
-    handleSubmit,
+    handleSubmit,    
     formState: {
       errors
     }
@@ -42,14 +42,30 @@ export function RegisterLoginData() {
   });
 
   async function handleRegister(formData: FormData) {
-    const newLoginData = {
-      id: String(uuid.v4()),
-      ...formData
+    try {
+      const dataKey = '@savepass:logins';
+      const searchData = await AsyncStorage.getItem(dataKey);
+      const currentData = searchData ? JSON.parse(searchData) : [];
+
+      const newLoginData = {
+        id: String(uuid.v4()),
+        ...formData,        
+      }
+
+      const dataFormatted = [
+        ...currentData,
+        newLoginData
+      ];        
+      // Save data on AsyncStorage and navigate to 'Home' screen
+
+      await AsyncStorage.setItem(dataKey, JSON.stringify(dataFormatted));      
+
+      navigate('Home');
+    } catch (error) {
+      console.log(error);
+      Alert.alert('Não foi possível salvar');
     }
 
-    const dataKey = '@savepass:logins';
-
-    // Save data on AsyncStorage and navigate to 'Home' screen
   }
 
   return (
@@ -66,8 +82,7 @@ export function RegisterLoginData() {
             title="Nome do serviço"
             name="service_name"
             error={
-              // Replace here with real content
-              'Has error ? show error message'
+              errors.service_name && errors.service_name.message
             }
             control={control}
             autoCapitalize="sentences"
@@ -78,8 +93,7 @@ export function RegisterLoginData() {
             title="E-mail"
             name="email"
             error={
-              // Replace here with real content
-              'Has error ? show error message'
+              errors.email && errors.email.message
             }
             control={control}
             autoCorrect={false}
@@ -91,8 +105,7 @@ export function RegisterLoginData() {
             title="Senha"
             name="password"
             error={
-              // Replace here with real content
-              'Has error ? show error message'
+              errors.password && errors.password.message
             }
             control={control}
             secureTextEntry
